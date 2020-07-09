@@ -27,7 +27,7 @@ export const Region = (props: Pick<ItemViewProps, 'isActive'>) => {
             return (
               <RegionItem
                 key={item.code}
-                selected={region === item.code}
+                checked={region === item.code}
                 onPress={async selectedRegion => {
                   if (region === item.code) {
                     setRegion('None');

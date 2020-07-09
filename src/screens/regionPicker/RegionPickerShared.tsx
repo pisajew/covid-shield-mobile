@@ -20,12 +20,12 @@ interface RegionItemProps {
   code: Region;
   flagIcon: any;
   name: string;
-  selected: boolean;
+  checked: boolean;
   lastItem?: boolean;
   onPress: (code: Region) => void;
 }
 
-export const regionData: Omit<RegionItemProps, 'onPress' | 'selected' | 'name'>[] = [
+export const regionData: Omit<RegionItemProps, 'onPress' | 'checked' | 'name'>[] = [
   {code: 'AB', flagIcon: AbFlag},
   {code: 'BC', flagIcon: BcFlag},
   {code: 'MB', flagIcon: MbFlag},
@@ -41,9 +41,9 @@ export const regionData: Omit<RegionItemProps, 'onPress' | 'selected' | 'name'>[
   {code: 'YT', flagIcon: YtFlag, lastItem: true},
 ];
 
-const RegionItem_ = ({code, onPress, name, lastItem, selected}: RegionItemProps) => (
+const RegionItem_ = ({code, onPress, name, lastItem, checked}: RegionItemProps) => (
   <>
-    <TouchableOpacity onPress={() => onPress(code)} accessibilityRole="radio" accessibilityState={{selected}}>
+    <TouchableOpacity onPress={() => onPress(code)} accessibilityRole="radio" accessibilityState={{checked}}>
       <Box
         paddingVertical="m"
         marginHorizontal="-m"
@@ -57,7 +57,7 @@ const RegionItem_ = ({code, onPress, name, lastItem, selected}: RegionItemProps)
         <Text variant="bodyText" color="overlayBodyText" marginHorizontal="s">
           {name}
         </Text>
-        <Box alignSelf="center">{selected && <Icon size={25} name="icon-check" />}</Box>
+        <Box alignSelf="center">{checked && <Icon size={25} name="icon-check" />}</Box>
       </Box>
     </TouchableOpacity>
     {!lastItem && <Box height={5} marginHorizontal="-m" backgroundColor="overlayBackground" />}
