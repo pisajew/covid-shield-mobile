@@ -61,12 +61,7 @@ platform :ios do
     build_app(
       scheme: "CovidShield",
       workspace: "./ios/CovidShield.xcworkspace",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          ENV["APP_ID_IOS"] => ENV["PROFILE"]
-        }
-      }
+      export_method: "app-store"
     )
 
     groups = ENV["TEST_GROUPS"].split(",")
@@ -94,12 +89,7 @@ platform :ios do
       scheme: "CovidShield",
       workspace: "./ios/CovidShield.xcworkspace",
       export_method: "ad-hoc",
-      output_directory: "./build",
-      export_options: {
-        provisioningProfiles: {
-          ENV["APP_ID_IOS"] => ENV["PROFILE_ADHOC"]
-        }
-      }
+      output_directory: "./build"
     )
   end
 end
