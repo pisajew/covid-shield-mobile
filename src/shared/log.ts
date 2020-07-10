@@ -16,13 +16,15 @@ export const getLogUUID = async () => {
 };
 
 export const captureMessage = async (message: string, params: {[key in string]: any} = {}) => {
+  const uuid = await getLogUUID();
   const scope = new Sentry.Scope();
-  scope.setExtras({...params, UUID: await getLogUUID()});
-  Sentry.captureMessage(message, scope);
+  scope.setExtras(params);
+  Sentry.captureMessage(`[${uuid}] ${message}`, scope);
 };
 
 export const captureException = async (exception: any, params: {[key in string]: any} = {}) => {
+  const uuid = await getLogUUID();
   const scope = new Sentry.Scope();
-  scope.setExtras({...params, UUID: await getLogUUID()});
-  Sentry.captureException(exception, scope);
+  scope.setExtras(params);
+  Sentry.captureException(new Error(`[${uuid}] ${exception || exception.message}`), scope);
 };
