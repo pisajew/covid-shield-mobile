@@ -16,6 +16,7 @@ import {covidshield} from './covidshield';
 import {BackendInterface, SubmissionKeySet} from './types';
 
 const MAX_UPLOAD_KEYS = 14;
+const FETCH_HEADERS = {headers: {'Cache-Control': 'no-store'}};
 
 export class BackendService implements BackendInterface {
   retrieveUrl: string;
@@ -48,8 +49,8 @@ export class BackendService implements BackendInterface {
     // this is only for the purpose of downloading the configuration file.
     const region = 'CA';
     const exposureConfigurationUrl = `${this.retrieveUrl}/exposure-configuration/${region}.json`;
-    captureMessage('getExposureConfiguration', {exposureConfigurationUrl});
-    return (await fetch(exposureConfigurationUrl)).json();
+    console.info(`Exposure Configuration URL: ${exposureConfigurationUrl}`);
+    return (await fetch(exposureConfigurationUrl, FETCH_HEADERS)).json();
   }
 
   async claimOneTimeCode(oneTimeCode: string): Promise<SubmissionKeySet> {
