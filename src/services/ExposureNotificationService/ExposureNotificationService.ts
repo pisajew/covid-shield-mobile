@@ -146,32 +146,37 @@ export class ExposureNotificationService {
   }
 
   async updateExposureStatusInBackground() {
-    await this.init();
-    await this.updateExposureStatus();
-    const currentStatus = this.exposureStatus.get();
-    if (currentStatus.type === 'exposed' && !currentStatus.notificationSent) {
-      PushNotification.presentLocalNotification({
-        alertTitle: this.i18n.translate('Notification.ExposedMessageTitle'),
-        alertBody: this.i18n.translate('Notification.ExposedMessageBody'),
-      });
-      await this.exposureStatus.append({
-        notificationSent: true,
-      });
-    }
-    if (
-      currentStatus.type === 'diagnosed' &&
-      currentStatus.needsSubmission &&
-      (!currentStatus.uploadReminderLastSentAt ||
-        minutesBetween(new Date(currentStatus.uploadReminderLastSentAt), new Date()) >
-          MINIMUM_REMINDER_INTERVAL_MINUTES)
-    ) {
-      PushNotification.presentLocalNotification({
-        alertTitle: this.i18n.translate('Notification.DailyUploadNotificationTitle'),
-        alertBody: this.i18n.translate('Notification.DailyUploadNotificationBody'),
-      });
-      await this.exposureStatus.append({
-        uploadReminderLastSentAt: new Date().getTime(),
-      });
+    try {
+      await this.init();
+      await this.updateExposureStatus();
+      const currentStatus = this.exposureStatus.get();
+      captureMessage('updatedExposureStatusInBackground', {exposureStatus: this.exposureStatus.get()});
+      if (currentStatus.type === 'exposed' && !currentStatus.notificationSent) {
+        PushNotification.presentLocalNotification({
+          alertTitle: this.i18n.translate('Notification.ExposedMessageTitle'),
+          alertBody: this.i18n.translate('Notification.ExposedMessageBody'),
+        });
+        await this.exposureStatus.append({
+          notificationSent: true,
+        });
+      }
+      if (
+        currentStatus.type === 'diagnosed' &&
+        currentStatus.needsSubmission &&
+        (!currentStatus.uploadReminderLastSentAt ||
+          minutesBetween(new Date(currentStatus.uploadReminderLastSentAt), new Date()) >
+            MINIMUM_REMINDER_INTERVAL_MINUTES)
+      ) {
+        PushNotification.presentLocalNotification({
+          alertTitle: this.i18n.translate('Notification.DailyUploadNotificationTitle'),
+          alertBody: this.i18n.translate('Notification.DailyUploadNotificationBody'),
+        });
+        await this.exposureStatus.append({
+          uploadReminderLastSentAt: new Date().getTime(),
+        });
+      }
+    } catch (error) {
+      captureException(error, {message: 'updateExposureStatusInBackground'});
     }
   }
 

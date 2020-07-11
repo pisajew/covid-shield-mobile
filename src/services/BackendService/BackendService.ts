@@ -49,7 +49,7 @@ export class BackendService implements BackendInterface {
     // this is only for the purpose of downloading the configuration file.
     const region = 'CA';
     const exposureConfigurationUrl = `${this.retrieveUrl}/exposure-configuration/${region}.json`;
-    console.info(`Exposure Configuration URL: ${exposureConfigurationUrl}`);
+    captureMessage('getExposureConfiguration', {exposureConfigurationUrl});
     return (await fetch(exposureConfigurationUrl, FETCH_HEADERS)).json();
   }
 
