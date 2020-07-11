@@ -24,6 +24,7 @@ import {BackendService} from 'services/BackendService';
 import {SharedTranslations, getSystemLocale} from 'locale';
 import {ThemeProvider} from 'shared/theme';
 import {AccessibilityServiceProvider} from 'services/AccessibilityService';
+import {captureMessage} from 'shared/log';
 
 // grabs the ip address
 if (__DEV__) {
@@ -41,7 +42,7 @@ const i18nManager = new I18nManager({
 });
 
 const appInit = async () => {
-  console.info('App.appInit()');
+  captureMessage('App.appInit()');
   try {
     const locale = await AsyncStorage.getItem(Key.Locale);
     if (locale && locale !== i18nManager.details.locale) i18nManager.update({locale});
