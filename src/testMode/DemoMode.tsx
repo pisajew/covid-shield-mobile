@@ -126,7 +126,7 @@ const DrawerContent = () => {
         <Section>
           <Item title="UUID for debugging" />
           <Box flexDirection="row">
-            <TextInput style={styles.flex} placeholder="UUID..." value={UUID} onChangeText={setUUID} />
+            <TextInput style={styles.uuidTextInput} placeholder="UUID..." value={UUID} onChangeText={setUUID} />
             <Button variant="thinFlat" text="Apply" onPress={onApplyUUID} />
           </Box>
         </Section>
@@ -179,7 +179,8 @@ export const DemoMode = ({children}: DemoModeProps) => {
 };
 
 const styles = StyleSheet.create({
-  flex: {
+  uuidTextInput: {
     flex: 1,
+    color: '#000000',
   },
 });
