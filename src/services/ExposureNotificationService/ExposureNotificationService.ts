@@ -287,7 +287,7 @@ export class ExposureNotificationService {
       if (error instanceof SyntaxError) {
         captureException(error, {message: 'JSON Parsing error: Unable to parse downloaded exposureConfiguration'});
       } else {
-        captureException(error, {message: 'Netowrk error: Unable to download exposureConfiguration'});
+        captureException(error, {message: 'Network error: Unable to download exposureConfiguration'});
       }
       exposureConfiguration = await this.getAlternateExposureConfiguration();
     }

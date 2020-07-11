@@ -50,7 +50,6 @@ const appInit = async () => {
   }
 
   // only hide splash screen after our init is done
-  console.info('SplashScreen.hide()');
   SplashScreen.hide();
 };
 
