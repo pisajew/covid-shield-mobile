@@ -53,7 +53,6 @@ platform :ios do
     match(
       git_url: ENV["CERTS_REPO"],
       app_identifier: ENV["APP_ID_IOS"],
-      username: ENV["APPLE_ID"],
       type: "appstore",
       readonly: true
     )
@@ -64,15 +63,15 @@ platform :ios do
       export_method: "app-store"
     )
 
-    groups = ENV["TEST_GROUPS"].split(",")
-    upload_to_testflight(
-      groups: groups,
-      changelog: default_changelog(simple: true),
-      app_version: ENV["APP_VERSION_NAME"],
-      build_number: ENV["APP_VERSION_CODE"],
-    )
+    #groups = ENV["TEST_GROUPS"].split(",")
+    #upload_to_testflight(
+    #  groups: groups,
+    #  changelog: default_changelog(simple: true),
+    #  app_version: ENV["APP_VERSION_NAME"],
+    #  build_number: ENV["APP_VERSION_CODE"],
+    #)
 
-    create_github_release(platform: 'iOS')
+    #create_github_release(platform: 'iOS')
   end
 
   desc "Builds a local iOS adhoc .ipa"
