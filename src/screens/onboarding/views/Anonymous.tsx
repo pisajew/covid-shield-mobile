@@ -1,8 +1,8 @@
 import React from 'react';
-import {Box, BulletPointX, Text} from 'components';
-import {useI18n} from '@shopify/react-i18n';
+import { Box, BulletPointX, Text } from 'components';
+import { useI18n } from '@shopify/react-i18n';
 
-import {ItemView, ItemViewProps} from './ItemView';
+import { ItemView, ItemViewProps } from './ItemView';
 
 export const Anonymous = (props: Pick<ItemViewProps, 'isActive'>) => {
   const [i18n] = useI18n();
@@ -27,10 +27,10 @@ export const Anonymous = (props: Pick<ItemViewProps, 'isActive'>) => {
           </Text>
         </Box>
 
-        <BulletPointX text={i18n.translate('Onboarding.Anonymous.Bullet1')} />
-        <BulletPointX text={i18n.translate('Onboarding.Anonymous.Bullet2')} />
-        <BulletPointX text={i18n.translate('Onboarding.Anonymous.Bullet3')} />
-        <BulletPointX text={i18n.translate('Onboarding.Anonymous.Bullet4')} />
+        <BulletPointX listAccessibile={'listStart'} text={i18n.translate('Onboarding.Anonymous.Bullet1')} />
+        <BulletPointX listAccessibile={'item'} text={i18n.translate('Onboarding.Anonymous.Bullet2')} />
+        <BulletPointX listAccessibile={'item'} text={i18n.translate('Onboarding.Anonymous.Bullet3')} />
+        <BulletPointX listAccessibile={'listEnd'} text={i18n.translate('Onboarding.Anonymous.Bullet4')} />
       </>
     </ItemView>
   );
