@@ -24,6 +24,9 @@ const SECURE_OPTIONS = {
 };
 const SECURE_OPTIONS_FOR_CONFIGURATION = {...SECURE_OPTIONS, kSecAttrAccessible: 'kSecAttrAccessibleAlways'};
 
+const KEY_UPDATE_MAX_TRIES = 3; // Maximum number of retries, after failure to fetch new exposure keys.
+const KEY_UPDATE_RETRY_DELAY = 5000;
+
 export const EXPOSURE_STATUS = 'exposureStatus';
 
 export const HOURS_PER_PERIOD = 24;
@@ -99,6 +102,8 @@ export class ExposureNotificationService {
   private storage: PersistencyProvider;
   private secureStorage: SecurePersistencyProvider;
 
+  private retryCount = 0; // counter for key update reattempts.
+
   constructor(
     backendInterface: BackendInterface,
     i18n: I18n,
@@ -165,6 +170,8 @@ export class ExposureNotificationService {
       this.exposureStatusUpdatePromise = null;
       return input;
     };
+    // Reset retry counter before requesting updates
+    this.retryCount = 0;
     this.exposureStatusUpdatePromise = this.performExposureStatusUpdate().then(cleanUpPromise, cleanUpPromise);
     return this.exposureStatusUpdatePromise;
   }
@@ -261,6 +268,7 @@ export class ExposureNotificationService {
         yield {keysFileUrl, period: runningPeriod};
       } catch (error) {
         captureException('Error while downloading batch files', error);
+        throw( error );
       }
       return;
     }
@@ -274,13 +282,14 @@ export class ExposureNotificationService {
         yield {keysFileUrl, period};
       } catch (error) {
         captureException('Error while downloading key file', error);
+        throw ( error );
       }
 
       runningPeriod -= 1;
     }
   }
 
-  private async performExposureStatusUpdate(): Promise<void> {
+  async performExposureStatusUpdate(): Promise<void> {
     let exposureConfiguration: ExposureConfiguration;
     try {
       exposureConfiguration = await this.backendInterface.getExposureConfiguration();
@@ -343,14 +352,30 @@ export class ExposureNotificationService {
 
     const keysFileUrls: string[] = [];
     const generator = this.keysSinceLastFetch(currentStatus.lastChecked?.period);
+    
+    
     let lastCheckedPeriod = currentStatus.lastChecked?.period;
     while (true) {
-      const {value, done} = await generator.next();
-      if (done) break;
-      if (!value) continue;
-      const {keysFileUrl, period} = value;
-      keysFileUrls.push(keysFileUrl);
+      try {
+        const {value, done} = await generator.next();
+        if (done) break;
+        if (!value) continue;
+        const {keysFileUrl, period} = value;
+        keysFileUrls.push(keysFileUrl);
       lastCheckedPeriod = Math.max(lastCheckedPeriod || 0, period);
+      } catch(error) {
+        captureException('error from keysSinceLastFetch', error);
+        if(++this.retryCount <= KEY_UPDATE_MAX_TRIES) {
+          const me = this;
+          return new Promise((resolve,reject) => {
+            setTimeout(async () => {
+              captureMessage(`${this.retryCount} of ${KEY_UPDATE_MAX_TRIES} rescheduling check in ${KEY_UPDATE_RETRY_DELAY} ms`);
+              resolve();
+              me.performExposureStatusUpdate().then().catch((v)=>{reject(v)});
+            }, KEY_UPDATE_RETRY_DELAY);            
+          });
+        }
+      }
     }
 
     captureMessage('performExposureStatusUpdate', {
