@@ -24,7 +24,8 @@ const SECURE_OPTIONS = {
 };
 const SECURE_OPTIONS_FOR_CONFIGURATION = {...SECURE_OPTIONS, kSecAttrAccessible: 'kSecAttrAccessibleAlways'};
 
-const KEY_UPDATE_MAX_TRIES = 3; // Maximum number of retries, after failure to fetch new exposure keys.
+// Maximum number of retries, after failure to fetch new exposure keys.
+const KEY_UPDATE_MAX_TRIES = 3;
 const KEY_UPDATE_RETRY_DELAY = 5000;
 
 export const EXPOSURE_STATUS = 'exposureStatus';
@@ -102,7 +103,8 @@ export class ExposureNotificationService {
   private storage: PersistencyProvider;
   private secureStorage: SecurePersistencyProvider;
 
-  private retryCount = 0; // counter for key update reattempts.
+  // counter for key update reattempts.
+  private retryCount = 0;
 
   constructor(
     backendInterface: BackendInterface,
@@ -202,6 +204,10 @@ export class ExposureNotificationService {
     await this.recordKeySubmission();
   }
 
+  async retryExposureStatusUpdate(): Promise<void> {
+    await this.performExposureStatusUpdate();
+  }
+
   private async init() {
     const exposureStatus = JSON.parse((await this.storage.getItem(EXPOSURE_STATUS)) || 'null');
     this.exposureStatus.append({...exposureStatus});
@@ -268,7 +274,7 @@ export class ExposureNotificationService {
         yield {keysFileUrl, period: runningPeriod};
       } catch (error) {
         captureException('Error while downloading batch files', error);
-        throw( error );
+        throw error;
       }
       return;
     }
@@ -282,14 +288,14 @@ export class ExposureNotificationService {
         yield {keysFileUrl, period};
       } catch (error) {
         captureException('Error while downloading key file', error);
-        throw ( error );
+        throw error;
       }
 
       runningPeriod -= 1;
     }
   }
 
-  async performExposureStatusUpdate(): Promise<void> {
+  private async performExposureStatusUpdate(): Promise<void> {
     let exposureConfiguration: ExposureConfiguration;
     try {
       exposureConfiguration = await this.backendInterface.getExposureConfiguration();
@@ -352,8 +358,7 @@ export class ExposureNotificationService {
 
     const keysFileUrls: string[] = [];
     const generator = this.keysSinceLastFetch(currentStatus.lastChecked?.period);
-    
-    
+
     let lastCheckedPeriod = currentStatus.lastChecked?.period;
     while (true) {
       try {
@@ -362,17 +367,22 @@ export class ExposureNotificationService {
         if (!value) continue;
         const {keysFileUrl, period} = value;
         keysFileUrls.push(keysFileUrl);
-      lastCheckedPeriod = Math.max(lastCheckedPeriod || 0, period);
-      } catch(error) {
+        lastCheckedPeriod = Math.max(lastCheckedPeriod || 0, period);
+      } catch (error) {
         captureException('error from keysSinceLastFetch', error);
-        if(++this.retryCount <= KEY_UPDATE_MAX_TRIES) {
-          const me = this;
-          return new Promise((resolve,reject) => {
+        if (++this.retryCount <= KEY_UPDATE_MAX_TRIES) {
+          return new Promise((resolve, reject) => {
             setTimeout(async () => {
-              captureMessage(`${this.retryCount} of ${KEY_UPDATE_MAX_TRIES} rescheduling check in ${KEY_UPDATE_RETRY_DELAY} ms`);
-              resolve();
-              me.performExposureStatusUpdate().then().catch((v)=>{reject(v)});
-            }, KEY_UPDATE_RETRY_DELAY);            
+              captureMessage(`try ${this.retryCount}/${KEY_UPDATE_MAX_TRIES}`);
+
+              this.retryExposureStatusUpdate()
+                .then(val => {
+                  resolve(val);
+                })
+                .catch(val => {
+                  reject(val);
+                });
+            }, KEY_UPDATE_RETRY_DELAY);
           });
         }
       }

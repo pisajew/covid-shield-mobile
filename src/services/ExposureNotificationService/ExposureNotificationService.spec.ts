@@ -3,15 +3,20 @@ import {when} from 'jest-when';
 
 import {periodSinceEpoch} from '../../shared/date-fns';
 
+import exposureConfigurationDefault from './ExposureConfigurationDefault.json';
 import {ExposureNotificationService, EXPOSURE_STATUS, HOURS_PER_PERIOD} from './ExposureNotificationService';
 
 jest.mock('react-native-zip-archive', () => ({
   unzip: jest.fn(),
 }));
 
+/* Increase async timeout to allow retries to happen for scenarios which
+   mock failure on backend operations. */
+jest.setTimeout(30000);
+
 const server: any = {
   retrieveDiagnosisKeys: jest.fn().mockResolvedValue(null),
-  getExposureConfiguration: jest.fn().mockResolvedValue({}),
+  getExposureConfiguration: jest.fn().mockResolvedValue(exposureConfigurationDefault),
   claimOneTimeCode: jest.fn(),
   reportDiagnosisKeys: jest.fn(),
 };
@@ -124,6 +129,11 @@ describe('ExposureNotificationService', () => {
   });
 
   it('serializes status update', async () => {
+    dateSpy.mockImplementation((args: any) => {
+      if (args === undefined) return new OriginalDate('2020-05-19T11:10:00+0000');
+      return new OriginalDate(args);
+    });
+
     const updatePromise = service.updateExposureStatus();
     const anotherUpdatePromise = service.updateExposureStatus();
     await Promise.all([updatePromise, anotherUpdatePromise]);
